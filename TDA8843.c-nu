@@ -1,0 +1,134 @@
+/*
+ * TDA8843.c
+ *
+ *  Created on: 15.06.2013
+ *      Author: pit
+ */
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------
+#include "TDA8843.h"
+#include "AvrXSerialIo.h"
+#include "stdio.h"
+
+
+//--------------------------------------------------------------
+// interne Funktionen
+//--------------------------------------------------------------
+short TDA8843_InitRegisters(void);
+
+
+
+short TDA8843_Init(void)
+{
+	short ret_wert = 0;
+
+	// check ob TDA8843 vorhanden ist
+	ret_wert = TDA8843_InitRegisters();
+	if(ret_wert == 0)
+	{
+	}
+
+	return(ret_wert);
+}
+
+
+
+
+
+
+short TDA8843_InitRegisters(void)
+{
+	short ret_wert = 0;
+	int16_t int_wert;
+	char buf[200];
+
+	int_wert = 0x80;
+	while (int_wert & 0x80)
+	{
+		int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R00_Status_0);
+		sprintf (buf, "Status 0: %02X\n\r", int_wert);
+		write_str2Host(buf);
+	}
+
+	int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R01_Status_1);
+	sprintf (buf, "Status 1: %02X\n\r", int_wert);
+	write_str2Host(buf);
+
+	int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R02_Status_2);
+	sprintf (buf, "Status 2: %02X\n\r", int_wert);
+	write_str2Host(buf);
+
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R00_Control_0, 						0x23);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R01_Control_1, 						0xD5);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R02_Hue, 								0x20);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R03_Horizontal_shift_HS, 				0xC0 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R04_EW_width_EW,		 				0x00 + 57);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R05_EW_parabola_width_PW,		 		0x00 + 38);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R06_EW_corner_parabola_CP,				0x00 + 30);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R07_EW_trapezium_TC,	 				0x00 + 21);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R08_Vertical_slope_VS,	 				0x00 + 36);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R09_Vertical_amplitude_VA,				0x40 + 40);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0A_S_correction_SC,	 				0x00 + 18);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0B_Vertical_shift_VSH, 				0x00 + 36);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0C_White_point_R,		 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0D_White_point_G,		 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0E_White_point_B,		 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R0F_Peaking,			 				0x00 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R10_Brightness,		 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R11_Saturation,		 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R12_Contrast,			 				0x00 + 32);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R13_AGC_take_over,		 				0x00 + 16);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R14_Volume_control,		 			0x00 + 16);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R15_Adjustment_IF_PLL,	 				0x20 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R16_Vertical_zoom_VX,	 				0x00 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R17_Vertical_scroll,	 				0x00 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R18_Control_2,			 				0x00 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R19_Control_3,			 				0x00 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R1A_Control_4,			 				0x80 + 00);
+	I2C1_WriteByte(TDA8843_I2C_ADDR, R1B_Control_5,			 				0x00 + 00);
+
+	int_wert = 0x80;
+	while (int_wert & 0x80)
+	{
+		int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R00_Status_0);
+		sprintf (buf, "--Status 0: %02X\n\r", int_wert);
+		write_str2Host(buf);
+	}
+
+	int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R01_Status_1);
+	sprintf (buf, "--Status 1: %02X\n\r", int_wert);
+	write_str2Host(buf);
+
+	int_wert = I2C1_ReadByte(TDA8843_I2C_ADDR, R02_Status_2);
+	sprintf (buf, "--Status 2: %02X\n\r", int_wert);
+	write_str2Host(buf);
+
+
+#if 0
+	// Reset vom TDA8843
+	int_wert=I2C1_WriteByte(TDA8843_I2C_ADR, TDA8843_I2C_REG_COM7, 0x80);
+	if(int_wert<0) return(TDA8843_I2C_ERR);
+
+	// kleine Pause
+	I2C1_Delay(TDA8843_I2C_RES_PAUSE);
+
+	// Check auf ID-HIByte
+	int_wert=I2C1_ReadByte(TDA8843_I2C_ADR, TDA8843_I2C_REG_MIDH);
+	if(int_wert<0) return(TDA8843_I2C_ERR);
+	if(int_wert!=0x7F) return(TDA8843_MIDH_ERR);
+
+	// Check auf ID-LoByte
+	int_wert=I2C1_ReadByte(TDA8843_I2C_ADR, TDA8843_I2C_REG_MIDL);
+	if(int_wert<0) return(TDA8843_I2C_ERR);
+	if(int_wert!=0xA2) return(TDA8843_MIDL_ERR);
+
+	// Check auf Produkt-ID
+	int_wert=I2C1_ReadByte(TDA8843_I2C_ADR, TDA8843_I2C_REG_PID);
+	if(int_wert<0) return(TDA8843_I2C_ERR);
+	if(int_wert!=0x96) return(TDA8843_PID_ERR);
+#endif
+	return(ret_wert);
+}

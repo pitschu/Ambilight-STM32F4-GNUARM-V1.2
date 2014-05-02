@@ -1,0 +1,81 @@
+/*
+ * undefs.c
+ *
+ *  Created on: 21.04.2012
+ *      Author: pit
+ */
+
+
+#include "stm32f4xx.h"
+#include <stdio.h>
+
+#include "hardware.h"
+#include "AvrXSerialIo.h"
+
+
+
+void _exit (void)
+{
+	while (1);
+}
+
+
+void _kill (void)
+{
+	return;
+}
+
+void _getpid()
+{
+	return;
+}
+
+int DebugWrite (const void *buffer, int len)
+{
+	int c = len;
+	char *cp = (char*)buffer;
+
+	while(c--)
+	{
+		put_char2Host(*cp++); /* You must write this function */
+	}
+
+	return len;
+}
+
+int _write(int fd, const void *data, unsigned int count)
+{
+	if (fd == 0)
+	{
+		count = DebugWrite(data, count);
+	}
+	else
+	{
+		DebugWrite("Error: _write\r\n", 15);
+		count = -1;
+	}
+
+	return(count);
+}
+
+/* based on a example-code from Keil for CS G++ */
+
+/* for caddr_t (typedef char * caddr_t;) */
+#include <sys/types.h>
+
+extern long _ebss;
+static unsigned char *heap = 0;
+
+caddr_t _sbrk ( int incr )
+{
+	unsigned char *prev_heap;
+
+	if (heap == 0) {
+		heap = (unsigned char *)&_ebss;
+	}
+	prev_heap = heap;
+
+	heap += incr;
+
+	return (caddr_t) prev_heap;
+}
