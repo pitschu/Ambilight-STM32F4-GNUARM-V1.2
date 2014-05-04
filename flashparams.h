@@ -23,10 +23,10 @@
 #ifndef FLASHPARAMS_H_
 #define FLASHPARAMS_H_
 
-#define PARAM_FLASH_START		0x0801C000		// 16K before ROM end (last 8 sectors)
-#define PARAM_FLASH_END			0x0801FFF0		// last flash byte usable for parameters
-#define	FLASH_SIGNATURE_P		0x0801FFFC		// 4 bytes (should be 'P.S.')
-#define FLASH_VERSION_P			0x0801FFF8		// 4 bytes version ID 0x0001 ...
+#define PARAM_FLASH_START		0x080C0000		// 256K before ROM end (last 2 sectors)
+#define PARAM_FLASH_END			0x080FFFF0		// last flash byte usable for parameters
+#define	FLASH_SIGNATURE_P		0x080FFFFC		// 4 bytes (should be 'P.S.')
+#define FLASH_VERSION_P			0x080FFFF8		// 4 bytes version ID 0x0001 ...
 
 typedef struct {
 	uint8_t *paraP;

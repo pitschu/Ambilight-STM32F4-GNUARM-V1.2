@@ -11,10 +11,14 @@
 #define CAT(a,b)		CAT_(a,b)
 
 
-#define		LEDS_X			48
-#define		LEDS_Y			28
-#define		LEDS_PHYS		(2*LEDS_X+2*LEDS_Y)			// physical leds on stripe
-#define		DELAY_LINE_SIZE	25
+#define		LEDS_XMAX		80
+#define		LEDS_YMAX		60
+#define		LEDS_MAXTOTAL	(2*LEDS_XMAX+2*LEDS_YMAX)			// MAX physical leds on stripe
+#define		DELAY_LINE_SIZE	20					// delay line for imgage processor in the TV
+
+extern int		ledsX;
+extern int		ledsY;
+#define			LEDS_PHYS		(2*ledsX+2*ledsY)				// physical leds on stripe
 
 // ----------------------------- definitions -----------------------------
 // warning: change source file if using tim1/8/9/10/11
@@ -51,6 +55,7 @@
 #define WS2812_RESET_LEN		50
 
 // three colors per led, eight bits per color
+#define WS2812_MAXDMA_LEN		(LEDS_MAXTOTAL * 3 * 8 + WS2812_RESET_LEN)
 #define WS2812_TIMERDMA_LEN		(LEDS_PHYS * 3 * 8 + WS2812_RESET_LEN)
 
 #define WS2812_TIM_FREQ			42000000
@@ -66,9 +71,9 @@ extern short factorI;
 
 // ----------------------------- variables -----------------------------
 
-extern rgbValue_t ws2812ledRGB[LEDS_PHYS];
-extern rgbValue_t ws2812ledOVR[LEDS_PHYS];			// overlay color data for all leds (has higher prio than ws2812ledRGB
-unsigned char ws2812ledHasOVR[LEDS_PHYS];
+extern rgbValue_t ws2812ledRGB[LEDS_MAXTOTAL];
+extern rgbValue_t ws2812ledOVR[LEDS_MAXTOTAL];			// overlay color data for all leds (has higher prio than ws2812ledRGB
+unsigned char ws2812ledHasOVR[LEDS_MAXTOTAL];
 extern volatile uint8_t	ledBusy;					// = 1 while dma is sending data to leds
 extern volatile unsigned long ws2812ovrlayCounter;	// ignore overlay when 0 (decr in system ticker)
 

@@ -82,9 +82,11 @@ int main(void)
 	UB_USB_CDC_Init();
 
 	USART3_Init (115200);
-	write_str2Host("Hi there. This is pitschu\n\r");
+	delay_ms(3000);			// delay 3sec to give user a chance for starting PuTTY
+
+	write_str2Host("Hi there. This is pitschu's AmbiLight V1.1\n\r");
 	/* Initialize LEDs and User_Button on STM32F4-Discovery --------------------*/
-	STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI);
+	STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_GPIO);
 
 	STM_EVAL_LEDInit(LED_GRN);
 	STM_EVAL_LEDInit(LED_ORN);
@@ -152,7 +154,7 @@ int main(void)
 						if (videoOffCount == 1)
 						{
 							printf("\nNo video signal at source %d, mode = %d\n", (int)videoCurrentSource, (int)videoSourceSelect);
-							for (i = 0; i < LEDS_PHYS; i++)		// blank all leds
+							for (i = 0; i < LEDS_MAXTOTAL; i++)		// blank all leds
 							{
 								ws2812ledRGB[i].R = 0;
 								ws2812ledRGB[i].G = 0;
@@ -166,7 +168,7 @@ int main(void)
 								printf("\nAuto switch source to %d\n", (int)newSource);
 								TVP5150selectVideoSource(newSource);
 								// set green channel scan indicator
-								ws2812ledRGB[newSource == 1 ? 0 : LEDS_Y+LEDS_X+LEDS_Y-1].G = 0x20;
+								ws2812ledRGB[newSource == 1 ? 0 : ledsY+ledsX+ledsY-1].G = 0x20;
 
 								videoOffCount = 5;				// start search
 							}
@@ -183,6 +185,26 @@ int main(void)
 
 			UserInterface();				// handle user input from UART
 
+			{
+				extern volatile uint16_t	butONcount;		// simulate IR-codes when blue on-board button is pressed
+
+				if (butONcount > 150)		// long press
+				{
+					irCode.isNew = IR_AUTORPT;
+					irCode.code = ONOFF_KEY;
+					irCode.repcntPressed = 20;
+					butONcount = 0;
+				}
+				else if (butONcount > 20)		// short press
+				{
+					irCode.isNew = IR_RELEASED;
+					irCode.code = ONOFF_KEY;
+					irCode.repcntPressed = 1;
+					butONcount = 0;
+				}
+
+			}
+
 			if (irCode.isNew == IR_AUTORPT || irCode.isNew == IR_RELEASED)
 			{
 				printf ("IR data: %04X, rep count: %d\n", (int)irCode.code, (int)irCode.repcntPressed);
@@ -195,7 +217,7 @@ int main(void)
 						{
 							stdbyMode = mainMode;
 							mainMode = MODE_STANDBY;
-							for (i = 0; i < LEDS_PHYS; i++)		// blank all leds
+							for (i = 0; i < LEDS_MAXTOTAL; i++)		// blank all leds
 							{
 								ws2812ledRGB[i].R = 0;
 								ws2812ledRGB[i].G = 0;
@@ -263,7 +285,7 @@ int main(void)
 				flashUpdateTimer = UINT32_MAX;
 			}
 
-}									// while captureReady == 0
+		}									// while captureReady == 0
 
 
 		/*
@@ -310,7 +332,7 @@ void displayOverlayPercents (int percent, int duration)
 		ws2812ovrlayCounter = duration;
 	}
 
-	i = LEDS_Y + LEDS_X - 1 - (((LEDS_X-3) * percent)/100);				// led index on top side (0 = left, 100 = right)
+	i = ledsY + ledsX - 1 - (((ledsX-3) * percent)/100);				// led index on top side (0 = left, 100 = right)
 
 	ws2812ledHasOVR[i-2] = 1;
 	ws2812ledOVR[i-2].B = 0;

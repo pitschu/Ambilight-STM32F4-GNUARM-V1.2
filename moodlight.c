@@ -38,7 +38,7 @@ int					moodLightTargetFixedColor = 0;
 int					moodLightMasterBrightness = 70;		// = 70%
 volatile int		moodLightFaderTime = 200;			// global fading timer = 2 sec
 
-moodLightFader_t    moodLightFader [LEDS_PHYS];				// one fader for each LED
+moodLightFader_t    moodLightFader [LEDS_MAXTOTAL];				// one fader for each LED
 
 const moodLightFixedColor_t	fixedColors[] = {
 		{{255,   0,   0}, 0x58},
@@ -91,7 +91,14 @@ moodLightColor_t moodLightDIYcolor[6] = {
 int moodLightFadeDIYcolorIndex = 0;
 
 int		moodLightSinusCount = 0;			// counts up to fader time
-moodLightSinusSettings_t moodLightSinusDIY [6];
+moodLightSinusSettings_t moodLightSinusDIY [6] =  {
+	{		// standard setting for DIY-0
+		5, 20, 14,
+		128, 128, 128,
+		127, 127, 127
+	}
+};
+
 int moodLightSinusDIYindex = 0;
 
 int		moodLightSinusPeriodB = 5;
@@ -442,9 +449,9 @@ int moodLightHandleIRcode ()
 		else
 		{
 			moodLightMode = MLM_SINGLE_COLOR;
-			moodLightTargetColor.B =  ws2812ledRGB[LEDS_Y + LEDS_X/2].B;
-			moodLightTargetColor.G =  ws2812ledRGB[LEDS_Y + LEDS_X/2].G;
-			moodLightTargetColor.R =  ws2812ledRGB[LEDS_Y + LEDS_X/2].R;
+			moodLightTargetColor.B =  ws2812ledRGB[ledsY + ledsX/2].B;
+			moodLightTargetColor.G =  ws2812ledRGB[ledsY + ledsX/2].G;
+			moodLightTargetColor.R =  ws2812ledRGB[ledsY + ledsX/2].R;
 			switch (irCode.code)
 			{
 			case RED_HI:
@@ -587,9 +594,9 @@ int moodLightHandleIRcode ()
 			}
 			else
 			{
-				moodLightDIYcolor[diyNum].B =  ws2812ledRGB[LEDS_Y + LEDS_X/2].B;
-				moodLightDIYcolor[diyNum].G =  ws2812ledRGB[LEDS_Y + LEDS_X/2].G;
-				moodLightDIYcolor[diyNum].R =  ws2812ledRGB[LEDS_Y + LEDS_X/2].R;
+				moodLightDIYcolor[diyNum].B =  ws2812ledRGB[ledsY + ledsX/2].B;
+				moodLightDIYcolor[diyNum].G =  ws2812ledRGB[ledsY + ledsX/2].G;
+				moodLightDIYcolor[diyNum].R =  ws2812ledRGB[ledsY + ledsX/2].R;
 			}
 			displayOverlayPercents(50, 20);
 		}

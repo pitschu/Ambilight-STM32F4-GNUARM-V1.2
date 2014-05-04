@@ -20,7 +20,7 @@
 
 #include "i2c1.h"
 
-#define   I2C_TIMEOUT     0x8000
+#define   I2C_TIMEOUT     0x1000
 
 
 void 	I2C_startI2C(void);

@@ -6,14 +6,16 @@
 #include "main.h"
 
 
+int			ledsX		=	48;					// physical number of LEDs (48 x 28 is for my Samsung 40" TV)
+int			ledsY		=	28;
 
-rgbValue_t 	ws2812ledRGB[LEDS_PHYS];			// color data for all leds
+rgbValue_t 	ws2812ledRGB[LEDS_MAXTOTAL];			// color data for all leds
 
-rgbValue_t 	ws2812ledOVR[LEDS_PHYS];			// overlay color data for all leds (has higher prio than ws2812ledRGB
-unsigned char ws2812ledHasOVR[LEDS_PHYS];
+rgbValue_t 	ws2812ledOVR[LEDS_MAXTOTAL];			// overlay color data for all leds (has higher prio than ws2812ledRGB
+unsigned char ws2812ledHasOVR[LEDS_MAXTOTAL];
 volatile unsigned long ws2812ovrlayCounter;				// ignore overlay when 0 (decr in system ticker)
 
-static uint16_t 		ws2812timerValues[WS2812_TIMERDMA_LEN];	// buffer for timer/dma, one byte per bit + reset pulse
+static uint16_t 		ws2812timerValues[WS2812_MAXDMA_LEN+1];	// buffer for timer/dma, one byte per bit + reset pulse
 volatile uint8_t		ledBusy = 0;							// = 1 while dma is sending data to leds
 
 
@@ -72,6 +74,8 @@ void WS2812update(void)
 			bufp = rgb2pwm(bufp, (const uint8_t)c);
 		}
 	}
+	for (i = 0; i < WS2812_RESET_LEN; i++)		// append reset pulse (50us low level)
+		*bufp++ = 0;
 
 	WS2812startDMA();		// send it to RGB stripe
 }
@@ -90,12 +94,12 @@ void WS2812init(void)
 	// clear dma buffer
 	int i;
 
-	for (i = 0; i < (WS2812_TIMERDMA_LEN - WS2812_RESET_LEN); i++)
+	for (i = 0; i < (WS2812_MAXDMA_LEN - WS2812_RESET_LEN); i++)
 		ws2812timerValues[i] = WS2812_PWM_ZERO;
-	for (; i < WS2812_TIMERDMA_LEN; i++)
+	for (; i < WS2812_MAXDMA_LEN; i++)
 		ws2812timerValues[i] = 0;
 
-	for (; i < LEDS_PHYS; i++)
+	for (; i < LEDS_MAXTOTAL; i++)
 	{
 		ws2812ledRGB[i].B = 0;
 		ws2812ledRGB[i].G = 0;
@@ -164,9 +168,9 @@ static void WS2812startDMA(void)
 		return;
 
 	ledBusy = 1;
-	static DMA_InitTypeDef dma_init =
+	DMA_InitTypeDef dma_init =
 	{
-			.DMA_BufferSize 		= WS2812_TIMERDMA_LEN,
+			.DMA_BufferSize 		= (LEDS_PHYS * 3 * 8 + WS2812_RESET_LEN),
 			.DMA_Channel 			= WS2812_DMA_CHANNEL,
 			.DMA_DIR 				= DMA_DIR_MemoryToPeripheral,
 			.DMA_FIFOMode 			= DMA_FIFOMode_Disable,

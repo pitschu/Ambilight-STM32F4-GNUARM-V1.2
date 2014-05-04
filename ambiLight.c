@@ -31,12 +31,12 @@
 #include "IRdecoder.h"
 
 
-// rgbImage is a scaled imgae of the raw video image blocks. It can be sized from 1x1 to 48x28
-rgbIcontroller_t	rgbImage [2*LEDS_X + 2*LEDS_Y];
-short				rgbImageWid = 48;
-short				rgbImageHigh = 28;
+// rgbImage is a scaled imgae of the raw video image blocks. It can be sized from 1x1 to 48x30
+rgbIcontroller_t	rgbImage [2*SLOTS_X + 2*SLOTS_Y];
+short				rgbImageWid = SLOTS_X;
+short				rgbImageHigh = SLOTS_Y;
 
-short 				factorI = 20;			// 128 = 1.0
+short 				factorI = 32;			// 128 = 1.0
 
 // the dynXYZ values build the dynamic border of the ´none black´ rgbSlots rectangle. They are permanently adapted to the
 // picture content. Black or nearly black borders are cut off.
@@ -56,7 +56,7 @@ long				dynWhiteLevelInt;
 
 int 				frameWidth = 4;			// number of slots to aggregate for LED stripe
 
-rgbValue_t 			tvprocRGBDelayFifo[DELAY_LINE_SIZE][LEDS_PHYS];			// for TV picture proc delays; up to 1 second
+rgbValue_t 			tvprocRGBDelayFifo[DELAY_LINE_SIZE][LEDS_MAXTOTAL];			// for TV picture proc delays; up to 1 second
 short  				tvprocDelayW;			// delay FIFO write pointer
 short  				tvprocDelayTime;		// difference between write an read pointr
 
@@ -82,7 +82,7 @@ void ambiLightInit (void)
 
 	for (j = 0; j < DELAY_LINE_SIZE; j++)
 	{
-		for (i = 0; i < LEDS_PHYS; i++)
+		for (i = 0; i < LEDS_MAXTOTAL; i++)
 		{
 			tvprocRGBDelayFifo[j][i].B = 0;
 			tvprocRGBDelayFifo[j][i].G = 0;
@@ -622,7 +622,7 @@ void ambiLightImage2LedRGB (void)
 		bVal += rgbImage[i].B;
 		cntVal++;
 
-		dv += LEDS_Y;
+		dv += ledsY;
 		if (dv >= rgbImageHigh)
 		{
 			while (dv >= rgbImageHigh)
@@ -638,7 +638,7 @@ void ambiLightImage2LedRGB (void)
 		}
 	}
 
-	ledIdx = LEDS_Y;			// = top right
+	ledIdx = ledsY;			// = top right
 	cntVal = 0;
 	rVal = gVal = bVal = 0;
 	dv = 0;
@@ -650,7 +650,7 @@ void ambiLightImage2LedRGB (void)
 		bVal += rgbImage[i].B;
 		cntVal++;
 
-		dv += LEDS_X;
+		dv += ledsX;
 		if (dv >= rgbImageWid)
 		{
 			while (dv >= rgbImageWid)
@@ -666,7 +666,7 @@ void ambiLightImage2LedRGB (void)
 		}
 	}
 
-	ledIdx = LEDS_Y + LEDS_X;			// = top left
+	ledIdx = ledsY + ledsX;			// = top left
 	cntVal = 0;
 	rVal = gVal = bVal = 0;
 	dv = 0;
@@ -678,7 +678,7 @@ void ambiLightImage2LedRGB (void)
 		bVal += rgbImage[i].B;
 		cntVal++;
 
-		dv += LEDS_Y;
+		dv += ledsY;
 		if (dv >= rgbImageHigh)
 		{
 			while (dv >= rgbImageHigh)
@@ -694,7 +694,7 @@ void ambiLightImage2LedRGB (void)
 		}
 	}
 
-	ledIdx = LEDS_Y + LEDS_X + LEDS_Y;			// = bottom left
+	ledIdx = ledsY + ledsX + ledsY;			// = bottom left
 	cntVal = 0;
 	rVal = gVal = bVal = 0;
 	dv = 0;
@@ -706,7 +706,7 @@ void ambiLightImage2LedRGB (void)
 		bVal += rgbImage[i].B;
 		cntVal++;
 
-		dv += LEDS_X;
+		dv += ledsX;
 		if (dv >= rgbImageWid)
 		{
 			while (dv >= rgbImageWid)

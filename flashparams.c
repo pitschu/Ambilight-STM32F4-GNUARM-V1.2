@@ -41,7 +41,7 @@ static uint8_t		*blockAddr = (uint8_t*)PARAM_FLASH_START;
 static uint16_t		blockSize;			// # of bytes in parameter flash block (without CRC bytes)
 
 #define	FLASH_SIGNATURE			((long)('P'<<24) |	(long)('.'<<16) | (long)('S'<<8) | (long)('.'<<0) )
-#define FLASH_VERSION			0x00D7
+#define FLASH_VERSION			134
 
 
 const flashParam_t flashParams[] = {
@@ -58,6 +58,8 @@ const flashParam_t flashParams[] = {
 		{(uint8_t*)&captureWidth		, sizeof (captureWidth)},
 		{(uint8_t*)&cropTop				, sizeof (cropTop)},
 		{(uint8_t*)&cropHeight			, sizeof (cropHeight)},
+		{(uint8_t*)&ledsX				, sizeof (ledsX)},
+		{(uint8_t*)&ledsY				, sizeof (ledsY)},
 		{(uint8_t*)&moodLightMasterBrightness	, sizeof (moodLightMasterBrightness)},
 		{(uint8_t*)&moodLightTargetFixedColor	, sizeof (moodLightTargetFixedColor)},
 		{(uint8_t*)&moodLightFade7colors[0]	, sizeof (moodLightFade7colors)},

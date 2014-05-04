@@ -41,7 +41,9 @@ typedef enum {
 	MS_IMAGE_HIG,
 	MS_VIDEO_SRC,
 	MS_FRAME_WID,
-	MS_FRAME_DELAY
+	MS_FRAME_DELAY,
+	MS_XLEDS,			// pitschu: added 140502
+	MS_YLEDS
 } mainStates_e;
 
 
@@ -52,8 +54,10 @@ int UserInterface (void)
 {
 	int16_t c;
 
+#define USE_USB 1
+
 #ifdef USE_USB
-	if(UB_USB_CDC_GetStatus()==USB_CDC_CONNECTED)
+	if(UB_USB_CDC_GetStatus() != USB_CDC_CONNECTED)
 		c = -1;
 	else
 		c = UB_VCP_CharRx ();
@@ -68,6 +72,12 @@ int UserInterface (void)
 		case 'Q':
 		case 'q':
 			ambiLightPrintDynInfos();
+			break;
+		case 'n':
+		case 'N':
+			TVP5150stopCapture ();
+			TVP5150init();
+			TVP5150startCapture();
 			break;
 		case 'a':
 		case 'A':
@@ -149,6 +159,18 @@ int UserInterface (void)
 			printf("\nCurrent video source is %d, mode = %d\n", (int)videoCurrentSource, (int)videoSourceSelect);
 			break;
 
+		case 'p':
+		case 'P':
+			mainState = MS_XLEDS;
+			printf("\nPhysical LEDS width %d\n", (int)ledsX);
+			break;
+
+		case 'r':
+		case 'R':
+			mainState = MS_YLEDS;
+			printf("\nPhysical LEDS height %d\n", (int)ledsY);
+			break;
+
 		case '+':
 		case '-':
 		case 'd':
@@ -194,7 +216,7 @@ int UserInterface (void)
 			case MS_ICONTROL:
 				if (c=='+' && factorI < MAX_ICONTROL) factorI += 1;
 				if (c=='-' && factorI > 1) factorI -= 1;
-				if (c=='d')	factorI = 20;
+				if (c=='d')	factorI = 32;
 				printf("I-Control is %d\n", factorI);
 				break;
 
@@ -210,8 +232,24 @@ int UserInterface (void)
 				if (c=='+' && rgbImageHigh < SLOTS_Y) rgbImageHigh += 1;
 				if (c=='-' && rgbImageHigh > 1) rgbImageHigh -= 1;
 				if (c=='d')	rgbImageHigh = SLOTS_Y;
-				ambiLightClearImage();
 				printf("Image height in blocks is %d\n", rgbImageHigh);
+				ambiLightClearImage();
+				break;
+
+			case MS_XLEDS:
+				if (c=='+' && ledsX < LEDS_XMAX) ledsX += 1;
+				if (c=='-' && ledsX > 1) ledsX -= 1;
+				if (c=='d')	ledsX = 48;
+				ambiLightClearImage();
+				printf("Physical image width (# of LEDs) is %d\n", ledsX);
+				break;
+
+			case MS_YLEDS:
+				if (c=='+' && ledsY < LEDS_YMAX) ledsY += 1;
+				if (c=='-' && ledsY > 1) ledsY -= 1;
+				if (c=='d')	ledsY = 28;
+				ambiLightClearImage();
+				printf("Physical image height (# of LEDs) is %d\n", ledsY);
 				break;
 
 			case MS_LEFT:
@@ -330,8 +368,12 @@ int UserInterface (void)
 				printf("     E=# of slots aggregated for LED strip (1..10)\n");
 				printf("     X=virtual image width in blocks\n");
 				printf("     Y=virtual image height in blocks\n");
+				printf("     P=Physical image width: # of LEDs\n");
+				printf("     R=Physical image height: # of LEDs\n");
 				printf("     V=select video source (1 or 2)\n");
 				printf("     Q=show info about Dyn Matrix\n");
+				printf("     N=restart TVP5150 and show reg info\n");
+				printf("     0,1 or 2: Set input channel 1 or 2; 0 = Auto\n");
 				break;
 		}
 
@@ -350,7 +392,6 @@ int UserInterface (void)
 			displayOverlayPercents((((int)Brightness*100)/255), 300);
 			break;
 		case MS_SATURATION:
-			printf("Color_saturation is %d\n", Color_saturation);
 			displayOverlayPercents((((int)Color_saturation*100)/255), 300);
 			break;
 		case MS_CONTRAST:

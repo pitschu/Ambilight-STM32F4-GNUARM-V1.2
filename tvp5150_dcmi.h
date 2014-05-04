@@ -36,13 +36,13 @@
 
 
 #define		SLOTS_X			48			// LED slots with RGB values from picture processor
-#define		SLOTS_Y			28
+#define		SLOTS_Y			30
 
 #define		CROP_TOP_MIN	24
 #define		CROP_HEIGHT_MAX	284
 #define		CROP_LEFT_MIN	160
 #define		CROP_WIDTH_MAX
-#define  TVP5150_I2C_ADR		0xB8	// slave addr of chip
+#define  	TVP5150_I2C_ADR		0xB8	// slave addr of chip
 
 // TVP5150AM1 register address and default values
 #define R00_Video_input_source_selection_1    		0x00    // 00h  R/W

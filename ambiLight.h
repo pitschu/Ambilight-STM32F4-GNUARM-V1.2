@@ -29,8 +29,6 @@
 #define DYN_WIN_X			10			// max +/- in X
 #define BLACK_LEVEL_SHIFT	10
 
-#define		DELAY_LINE_SIZE	25
-
 
 typedef struct {
 	uint8_t		R;
@@ -61,7 +59,7 @@ extern short	rgbImageHigh;
 extern short 	factorI;			// 128 = 1.0
 extern rgbIcontroller_t	rgbImage [];
 
-extern rgbValue_t 	tvprocRGBDelayFifo[DELAY_LINE_SIZE][LEDS_PHYS];			// for TV picture proc delays; up to 1 second
+extern rgbValue_t 	tvprocRGBDelayFifo[DELAY_LINE_SIZE][LEDS_MAXTOTAL];			// for TV picture proc delays; up to 1 second
 extern short  	tvprocDelayW;				// delay FIFO write pointer
 extern short  	tvprocDelayTime;			// difference between write an read pointr
 

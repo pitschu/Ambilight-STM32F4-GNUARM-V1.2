@@ -23,10 +23,15 @@
 #include <stdio.h>
 #include "moodLight.h"
 #include "ws2812.h"
-
+#include "hardware.h"
 
 volatile uint32_t 			system_time = 0;
 volatile static uint8_t  	_delay_sem = 0xff;		// FF = init before first use
+
+volatile uint8_t	butState;		// current status of button (1=pressed)
+volatile uint16_t	butCount;		// ticks since last change of button
+volatile uint16_t	butONcount;		// how long was button pressed last (in ticks)
+volatile uint16_t	butOFFcount;	// how long was button released
 
 
 
@@ -51,6 +56,28 @@ void SysTick_Handler(void)
 
 	if (ws2812ovrlayCounter > 0)
 		ws2812ovrlayCounter--;
+
+	uint8_t actButton = STM_EVAL_PBGetState (BUTTON_USER);
+
+	if (butState != actButton)
+	{
+		if (butCount > 10)			// has really changed -> save old state
+		{
+			if (actButton == Bit_RESET)				// button was down and is now up
+				butONcount = butCount;
+			else
+				butOFFcount = butCount;
+
+		}
+		butState = actButton;
+		butCount = 0;
+	}
+	else
+	{
+		if (butCount < 0xffff)
+			butCount++;
+	}
+
 }
 
 

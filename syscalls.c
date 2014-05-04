@@ -30,7 +30,7 @@ extern int errno;
 char *__env[1] = { 0 };
 char **environ = __env;
 
-#define USE_USB					// In Produktionsversion vergessen !!!!!!
+#define USE_USB		1			// In Produktionsversion vergessen !!!!!!
 
 int _write(int file, char *ptr, int len);
 
