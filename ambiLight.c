@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 supports dynamic X/Y LED strip size
  */
 
 #include "stm32f4xx.h"
@@ -36,7 +38,7 @@ rgbIcontroller_t	rgbImage [2*SLOTS_X + 2*SLOTS_Y];
 short				rgbImageWid = SLOTS_X;
 short				rgbImageHigh = SLOTS_Y;
 
-short 				factorI = 32;			// 128 = 1.0
+short 				factorI = 32;			// Integration speed: 128 = max speed (online); 1 = very slow, over 128 frames
 
 // the dynXYZ values build the dynamic border of the ´none black´ rgbSlots rectangle. They are permanently adapted to the
 // picture content. Black or nearly black borders are cut off.
@@ -165,7 +167,7 @@ int  ambiLightHandleIRcode ()
 		AvrXPutFifo(fifoFromHost, 'C');		// set contrast
 		break;
 	case WHITE_KEY:
-		AvrXPutFifo(fifoFromHost, 'B');		// set hue control
+		AvrXPutFifo(fifoFromHost, 'B');		// set brightness
 		break;
 	case SLOW_KEY:
 		AvrXPutFifo(fifoFromHost, 'I');		// set integration time
@@ -197,7 +199,10 @@ int  ambiLightHandleIRcode ()
 		AvrXPutFifo(fifoFromHost, 'E');		// set # of blocks to aggregate for LED
 		break;
 	case FADE7_KEY:
-		AvrXPutFifo(fifoFromHost, 'A');		// set frame delay
+		AvrXPutFifo(fifoFromHost, 'M');		// set frame delay
+		break;
+	case JUMP3_KEY:							// pitschu 140505
+		AvrXPutFifo(fifoFromHost, 'A');		// set AGC mode
 		break;
 
 	}
@@ -726,7 +731,7 @@ void ambiLightImage2LedRGB (void)
 	if (i < 0)
 		i += DELAY_LINE_SIZE;
 
-	for (ledIdx = 0; ledIdx < LEDS_PHYS; ledIdx++)		// copy delay entry to physical LED
+	for (ledIdx = 0; ledIdx < ledsPhysical; ledIdx++)		// copy delay entry to physical LED
 	{
 		ws2812ledRGB[ledIdx].R = tvprocRGBDelayFifo[i][ledIdx].R;
 		ws2812ledRGB[ledIdx].G = tvprocRGBDelayFifo[i][ledIdx].G;

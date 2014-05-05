@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 minor changes
  */
 
 
@@ -35,8 +37,8 @@
 #include "hardware.h"
 
 
-#define		SLOTS_X			48			// LED slots with RGB values from picture processor
-#define		SLOTS_Y			30
+#define		SLOTS_X			64			// LED slots with RGB values from picture processor
+#define		SLOTS_Y			40
 
 #define		CROP_TOP_MIN	24
 #define		CROP_HEIGHT_MAX	284
@@ -170,6 +172,8 @@ extern unsigned long	captureWidth;
 extern unsigned long	cropLeft;
 extern unsigned long	cropTop;
 extern unsigned long	cropHeight;
+
+extern unsigned short	tvp5150AGC;					// pitschu 140505: user selectable setting (usrinterface.c)
 
 //--------------------------------------------------------------
 #endif

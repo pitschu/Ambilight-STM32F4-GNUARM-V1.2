@@ -13,6 +13,10 @@
 
 */
 
+// pitschu: if defed USE_USB we use the USB VCP to send data to a host (PuTTY); if not defed we use USART3 on PD8/PD9 pins
+#define USE_USB		1
+
+
 // Buffer size can be any thing from 2 to 32000
 #define FIFOLEN_TOHOST 		1000
 #define FIFOLEN_FROMHOST 	64

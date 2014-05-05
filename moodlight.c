@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 supports dynamic X/Y LED strip size
  */
 
 
@@ -130,18 +132,18 @@ void moodLightMainAction (int action)
 	STM_EVAL_LEDOn(LED_BLU);
 
 
-	if (moodLightMode == MLM_JUMP3)
+	if (moodLightMode == MLM_SINUS)
 	{
 		if (++moodLightSinusCount > moodLightFaderTime)
 			moodLightSinusCount = 0;
 
-		for (i = 0; i < LEDS_PHYS; i++)
+		for (i = 0; i < ledsPhysical; i++)
 		{
 			float f;
 #define TRANSFORM_PERIOD(p)	(p <= 20 ? (float)p/5 : (float)(p-12)/2)
 
 			f = sinf(((float)moodLightSinusCount / moodLightFaderTime) * M_TWOPI +
-					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodB) * (float)((i + LEDS_PHYS/2) % LEDS_PHYS)) / (float)LEDS_PHYS) * ((float)moodLightSinusAmplitudeB) +
+					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodB) * (float)((i + ledsPhysical/2) % ledsPhysical)) / (float)ledsPhysical) * ((float)moodLightSinusAmplitudeB) +
 					(float)moodLightSinusBaseB;
 			s = (int)f;
 			if (s < 0) s = 0;
@@ -149,7 +151,7 @@ void moodLightMainAction (int action)
 			ws2812ledRGB[i].B = (uint8_t)s;
 
 			f = sinf(((float)moodLightSinusCount / moodLightFaderTime) * M_TWOPI +
-					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodG) * (float)((i + LEDS_PHYS/2) % LEDS_PHYS)) / (float)LEDS_PHYS) * ((float)moodLightSinusAmplitudeG) +
+					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodG) * (float)((i + ledsPhysical/2) % ledsPhysical)) / (float)ledsPhysical) * ((float)moodLightSinusAmplitudeG) +
 					(float)moodLightSinusBaseG;
 			s = (int)f;
 			if (s < 0) s = 0;
@@ -157,7 +159,7 @@ void moodLightMainAction (int action)
 			ws2812ledRGB[i].G = (uint8_t)s;
 
 			f = sinf(((float)moodLightSinusCount / moodLightFaderTime) * M_TWOPI +
-					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodR) * (float)(LEDS_PHYS - i)) / (float)LEDS_PHYS) * ((float)moodLightSinusAmplitudeR) +
+					M_TWOPI * (TRANSFORM_PERIOD(moodLightSinusPeriodR) * (float)(ledsPhysical - i)) / (float)ledsPhysical) * ((float)moodLightSinusAmplitudeR) +
 					(float)moodLightSinusBaseR;
 			s = (int)f;
 			if (s < 0) s = 0;
@@ -173,7 +175,7 @@ void moodLightMainAction (int action)
 
 		if (l - moodLightFader[0].time >= moodLightFader[0].duration)
 		{
-			for (i = 0; i < LEDS_PHYS; i++)
+			for (i = 0; i < ledsPhysical; i++)
 			{
 				moodLightFader[i].time = l;
 				moodLightFader[i].fc.B = ws2812ledRGB[i].B;
@@ -218,7 +220,7 @@ void moodLightMainAction (int action)
 				moodLightFadeDIYcolorIndex = 0;
 			}
 
-			for (i = 0; i < LEDS_PHYS; i++)
+			for (i = 0; i < ledsPhysical; i++)
 			{
 				moodLightFader[i].time = l;
 				moodLightFader[i].fc.B = ws2812ledRGB[i].B;
@@ -236,9 +238,9 @@ void moodLightMainAction (int action)
 
 	STM_EVAL_LEDOff(LED_BLU);
 
-	if (moodLightMode != MLM_JUMP3)		// only for fader modes
+	if (moodLightMode != MLM_SINUS)		// only for fader modes
 	{
-		for (i=0; i<LEDS_PHYS; i++)
+		for (i=0; i<ledsPhysical; i++)
 		{
 			if (l - moodLightFader[i].time < moodLightFader[i].duration)		// limit not reached yet -> next color step
 			{
@@ -278,7 +280,7 @@ void moodLightUpdateTimers (void)
 
 	if (moodLightMode == MLM_FADE_7 || moodLightMode == MLM_FADE_DIY)
 	{
-		for (i = 0; i < LEDS_PHYS; i++)
+		for (i = 0; i < ledsPhysical; i++)
 		{
 			moodLightFader[i].duration = moodLightFaderTime;
 		}
@@ -292,7 +294,7 @@ void moodLightUpdateFixedColor (void)
 	uint32_t  l = system_time;
 	int j;
 
-	for (j = 0; j < LEDS_PHYS; j++)
+	for (j = 0; j < ledsPhysical; j++)
 	{
 		moodLightFader[j].fc.B = ws2812ledRGB[j].B;
 		moodLightFader[j].fc.G = ws2812ledRGB[j].G;
@@ -327,9 +329,9 @@ int moodLightHandleIRcode ()
 	switch (irCode.code)
 	{
 	case JUMP3_KEY:
-		if (moodLightMode != MLM_JUMP3)
+		if (moodLightMode != MLM_SINUS)
 		{
-			moodLightMode = MLM_JUMP3;
+			moodLightMode = MLM_SINUS;
 		}
 		break;
 
@@ -339,7 +341,7 @@ int moodLightHandleIRcode ()
 			moodLightMode = MLM_FADE_7;
 			//			moodLightFade7colorIndex = 0;
 
-			for (i = 0; i < LEDS_PHYS; i++)
+			for (i = 0; i < ledsPhysical; i++)
 			{
 				moodLightFader[i].duration = moodLightFaderTime;
 				moodLightFader[i].time = 0;			// force color update
@@ -353,7 +355,7 @@ int moodLightHandleIRcode ()
 			moodLightMode = MLM_FADE_DIY;
 			//			moodLightFadeDIYcolorIndex = 0;
 
-			for (i = 0; i < LEDS_PHYS; i++)
+			for (i = 0; i < ledsPhysical; i++)
 			{
 				moodLightFader[i].duration = moodLightFaderTime;
 				moodLightFader[i].time = 0;			// force color update
@@ -368,7 +370,7 @@ int moodLightHandleIRcode ()
 	case GREEN_HI:
 	case GREEN_LO:
 	case AUTO_KEY:
-		if (moodLightMode == MLM_JUMP3)
+		if (moodLightMode == MLM_SINUS)
 		{
 			switch (irSinusMode)
 			{
@@ -546,7 +548,7 @@ int moodLightHandleIRcode ()
 
 		if (irCode.isNew == IR_RELEASED && irCode.repcntPressed < AUTO_RPT_INITIAL)	// short press -> activate DIY color
 		{
-			if (moodLightMode == MLM_JUMP3)
+			if (moodLightMode == MLM_SINUS)
 			{
 				moodLightSinusPeriodB = moodLightSinusDIY[diyNum].periodB;
 				moodLightSinusPeriodG = moodLightSinusDIY[diyNum].periodG;
@@ -569,7 +571,7 @@ int moodLightHandleIRcode ()
 		}
 		else if (irCode.isNew == IR_RELEASED && irCode.repcntPressed > AUTO_RPT_INITIAL + 15)  // very long -> save BLACK
 		{
-			if (moodLightMode != MLM_JUMP3)
+			if (moodLightMode != MLM_SINUS)
 			{
 				moodLightDIYcolor[diyNum].B =  0;
 				moodLightDIYcolor[diyNum].G =  0;
@@ -578,7 +580,7 @@ int moodLightHandleIRcode ()
 		}
 		else if (irCode.isNew == IR_RELEASED && irCode.repcntPressed > AUTO_RPT_INITIAL)	// save current color of central LED to DIY memory
 		{
-			if (moodLightMode == MLM_JUMP3)
+			if (moodLightMode == MLM_SINUS)
 			{
 				moodLightSinusDIY[diyNum].periodB = moodLightSinusPeriodB;
 				moodLightSinusDIY[diyNum].periodG = moodLightSinusPeriodG;
@@ -606,7 +608,7 @@ int moodLightHandleIRcode ()
 	case GREEN_KEY:
 	case BLUE_KEY:
 	case WHITE_KEY:
-		if (moodLightMode == MLM_JUMP3)
+		if (moodLightMode == MLM_SINUS)
 		{
 			switch (irCode.code)
 			{

@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu		support for: AGC control, X/Y LED size
  */
 
 #include "stm32f4xx.h"
@@ -23,7 +25,7 @@
 #include "string.h"
 #include "main.h"
 #include "ambiLight.h"
-
+#include "stm32_ub_usb_cdc.h"
 
 
 typedef enum {
@@ -42,6 +44,7 @@ typedef enum {
 	MS_VIDEO_SRC,
 	MS_FRAME_WID,
 	MS_FRAME_DELAY,
+	MS_TVP_AGC,			// pitschu: added 140505
 	MS_XLEDS,			// pitschu: added 140502
 	MS_YLEDS
 } mainStates_e;
@@ -54,16 +57,7 @@ int UserInterface (void)
 {
 	int16_t c;
 
-#define USE_USB 1
-
-#ifdef USE_USB
-	if(UB_USB_CDC_GetStatus() != USB_CDC_CONNECTED)
-		c = -1;
-	else
-		c = UB_VCP_CharRx ();
-#else
 	c = get_cHost();
-#endif
 
 	if (c > 0)				// got char from user
 	{
@@ -81,6 +75,11 @@ int UserInterface (void)
 			break;
 		case 'a':
 		case 'A':
+			mainState = MS_TVP_AGC;
+			printf("\nAGC setting is %s\n", tvp5150AGC ? "ON" : "OFF");
+			break;
+		case 'm':
+		case 'M':
 			mainState = MS_FRAME_DELAY;
 			printf("\nCurrent frame delay is %d frames\n", (int)tvprocDelayTime);
 			break;
@@ -176,6 +175,13 @@ int UserInterface (void)
 		case 'd':
 			switch (mainState)
 			{
+			case MS_TVP_AGC:
+				if (c=='+') tvp5150AGC = 1;
+				if (c=='-') tvp5150AGC = 0;
+				if (c=='d')	// toggle
+					tvp5150AGC  = (tvp5150AGC ? 0 : 1);		// toggle AGC
+				printf("\nAGC setting is %s\n", tvp5150AGC ? "ON" : "OFF");
+				break;
 			case MS_FRAME_DELAY:
 				if (c=='+' && tvprocDelayTime < DELAY_LINE_SIZE-1) tvprocDelayTime += 1;
 				if (c=='-' && tvprocDelayTime > 0) tvprocDelayTime -= 1;
@@ -361,7 +367,7 @@ int UserInterface (void)
 				break;
 
 			default:
-				printf("Usage: use +/- keys to set val; d=default\n");
+				printf("\nUsage: use +/- keys to set val; d=default\n");
 				printf("     F=Hue, S=Saturation, B=Brightness, C=Contrast\n");
 				printf("     L=Left, W=Width, T=Top, H=Height\n");
 				printf("     I=I-factor of integrator (128 = MAX)\n");
@@ -373,6 +379,8 @@ int UserInterface (void)
 				printf("     V=select video source (1 or 2)\n");
 				printf("     Q=show info about Dyn Matrix\n");
 				printf("     N=restart TVP5150 and show reg info\n");
+				printf("     A=set TVP5150 auto gain control ON/OFF\n");
+				printf("     M=set frame delay time (0-20 frames)\n");
 				printf("     0,1 or 2: Set input channel 1 or 2; 0 = Auto\n");
 				break;
 		}
@@ -422,6 +430,9 @@ int UserInterface (void)
 			displayOverlayPercents((((int)(cropHeight)*100)/300), 300);
 			break;
 
+		case MS_TVP_AGC:
+			displayOverlayPercents((((int)(tvp5150AGC)*100)), 300);		// pitschu 140505
+			break;
 		default:
 			break;
 		}

@@ -16,6 +16,8 @@
 *
 *	History
 *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 supports AGC control
 */
 
 #include "hardware.h"
@@ -70,17 +72,18 @@ unsigned long	cropHeight	= 		274;
 unsigned long	dmaWidth 	= 		PAL_WIDTH/4;		// in words (= DMA unit)
 unsigned long	dmaBufLen	= 		((PAL_WIDTH/2) * DMA_LINES);
 
-unsigned char	Brightness			= 60;
+unsigned char	Brightness			= 60;		// image defaults; all values stored in flash param section
 unsigned char	Color_saturation	= 100;
 signed char		Hue_control			= 0;
 unsigned char	Contrast			= 80;
 
-volatile short	captureLeftRight = 	0;		// 0 = left; 1 = right; one frame for each side
+volatile short	captureLeftRight = 	0;			// 0 = left; 1 = right; one frame for each side
 volatile short 	captureReady = 		0;			// semaphore for main(); set when frame captured completly
 
 unsigned char	videoSourceSelect = 0;			// 0 = auto; 1/2 = video channel
 unsigned char	videoCurrentSource = 1;			// current video channel set in TVP5150
 
+unsigned short	tvp5150AGC = 1;					// pitschu 140505: user selectable setting (usrinterface.c)
 
 
 short 	TVP5150initRegisters(void);
@@ -132,7 +135,7 @@ short TVP5150init(void)
 
 	TVP5150initRegisters();
 
-	delay_ms(1000);
+	delay_ms(100);
 	tvp5150_log_status ();
 
 	return(0);
@@ -202,6 +205,8 @@ void TVP5150setPictureParams (void)
 	I2C_WriteByte(TVP5150_I2C_ADR, R0A_Color_saturation_control, 	(uint8_t)Color_saturation);
 	I2C_WriteByte(TVP5150_I2C_ADR, R0B_Hue_control, 				(uint8_t)Hue_control);
 	I2C_WriteByte(TVP5150_I2C_ADR, R0C_Contrast_Control, 			(uint8_t)Contrast);
+
+	I2C_WriteByte(TVP5150_I2C_ADR, R01_Analog_channel_controls,		(tvp5150AGC ? 0x15 : 0x1e));		// pitschu 140505
 }
 
 
@@ -244,7 +249,7 @@ short TVP5150initRegisters(void)
 {
 	TVP5150selectVideoSource(videoCurrentSource);
 
-	I2C_WriteByte(TVP5150_I2C_ADR, R01_Analog_channel_controls,					0x15);		// AGC on
+// done in TVP5150setPictureParams: 	I2C_WriteByte(TVP5150_I2C_ADR, R01_Analog_channel_controls,					0x15);		// AGC on
 	I2C_WriteByte(TVP5150_I2C_ADR, R03_Miscellaneous_controls, 					0b10101111);// VBLK select and on, YCvCr mode, HSYNC,VSYNC,... enabled, Clock out enabled
 	I2C_WriteByte(TVP5150_I2C_ADR, R0F_Configuration_shared_pins,				0b00000010);// VBLK instead of INTREQ
 

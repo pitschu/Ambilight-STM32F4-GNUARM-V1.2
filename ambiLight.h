@@ -22,8 +22,6 @@
 #ifndef AMBILIGHT_H_
 #define AMBILIGHT_H_
 
-#define BLACK_LEVEL		50
-
 #define DYN_FRAME_INTCNT	150
 #define DYN_WIN_Y			10			// max +/- in Y
 #define DYN_WIN_X			10			// max +/- in X

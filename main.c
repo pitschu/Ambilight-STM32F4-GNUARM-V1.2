@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 supports blue user button (mode switch/standby)
  */
 
 #include "stm32f4xx.h"
@@ -118,8 +120,6 @@ int main(void)
 
 	I2C_InitHardware();				// init I2C bus to TVP5150
 	TVP5150init();				// init DCMI interface and start TVP5150
-	delay_ms(100);
-	TVP5150startCapture();
 
 	ambiLightInit();
 
@@ -128,6 +128,8 @@ int main(void)
 	checkForParamChanges ();		// calc param CRC for later checks
 	flashUpdateTimer = UINT32_MAX;	// no need to update now
 
+	delay_ms(100);
+	TVP5150startCapture();
 
 	while (1)			// main loop
 	{
@@ -161,7 +163,7 @@ int main(void)
 								ws2812ledRGB[i].B = 0;
 							}
 
-							if (videoSourceSelect == 0)			// no video connected -> switch source when suto select mode
+							if (videoSourceSelect == 0)			// no video connected -> switch source when auto select mode
 							{
 								short newSource = (videoCurrentSource == 1 ? 2 : 1);
 
@@ -183,19 +185,31 @@ int main(void)
 					flashUpdateTimer = system_time + 800;
 			}
 
-			UserInterface();				// handle user input from UART
+#ifdef USE_USB
+			{
+				int16_t c;
+				if(UB_USB_CDC_GetStatus() != USB_CDC_CONNECTED)
+					c = -1;
+				else
+					c = UB_VCP_CharRx ();
+
+				if (c > 0)
+					AvrXPutFifo(fifoFromHost, (uint8_t)c);
+			}
+#endif
+			UserInterface();				// handle user input from UART/USB
 
 			{
 				extern volatile uint16_t	butONcount;		// simulate IR-codes when blue on-board button is pressed
 
-				if (butONcount > 150)		// long press
+				if (butONcount > 150)		// long press -> standby
 				{
 					irCode.isNew = IR_AUTORPT;
 					irCode.code = ONOFF_KEY;
 					irCode.repcntPressed = 20;
 					butONcount = 0;
 				}
-				else if (butONcount > 20)		// short press
+				else if (butONcount > 20)		// short press -> toggle mode
 				{
 					irCode.isNew = IR_RELEASED;
 					irCode.code = ONOFF_KEY;
@@ -232,6 +246,14 @@ int main(void)
 							mainMode = stdbyMode;
 						else
 							mainMode = (mainMode == MODE_MOODLIGHT ? MODE_AMBILIGHT : MODE_MOODLIGHT);
+
+						for (i = 0; i < LEDS_MAXTOTAL; i++)		// blank all leds
+						{
+							ws2812ledRGB[i].R = 0;
+							ws2812ledRGB[i].G = 0;
+							ws2812ledRGB[i].B = 0;
+						}
+						displayOverlayPercents (100, 100);
 					}
 
 					printf ("Mood/Ambi mode switched to %02X\n", (int)mainMode);
@@ -322,7 +344,7 @@ void displayOverlayPercents (int percent, int duration)
 
 	if (duration > 0)			// else only set additional overlay leds
 	{
-		for (i = 0; i < LEDS_PHYS; i++)
+		for (i = 0; i < ledsPhysical; i++)
 		{
 			ws2812ledOVR[i].B = 0;
 			ws2812ledOVR[i].G = 0;

@@ -16,6 +16,7 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
  */
 
 
@@ -26,7 +27,7 @@ typedef enum {
 	MLM_SINGLE_COLOR		= 0,
 	MLM_FADE_7,
 	MLM_FADE_DIY,
-	MLM_JUMP3,					// 1 sin() function for each color (R, G and B) with different frequencies
+	MLM_SINUS,					// 1 sin() function for each color (R, G and B) with different frequencies
 } moodLightMode_e;
 
 typedef struct {

@@ -1,3 +1,23 @@
+/*****************************************************
+ *
+ *	Control program for the PitSchuLight TV-Backlight
+ *	(c) Peter Schulten, Mülheim, Germany
+ *	peter_(at)_pitschu.de
+ *
+ *	Die unveränderte Wiedergabe und Verteilung dieses gesamten Sourcecodes
+ *	in beliebiger Form ist gestattet, sofern obiger Hinweis erhalten bleibt.
+ *
+ * 	Ich stelle diesen Sourcecode kostenlos zur Verfügung und biete daher weder
+ *	Support an noch garantiere ich für seine Funktionsfähigkeit. Außerdem
+ *	übernehme ich keine Haftung für die Folgen seiner Nutzung.
+
+ *	Der Sourcecode darf nur zu privaten Zwecken verwendet und modifiziert werden.
+ *	Darüber hinaus gehende Verwendung bedarf meiner Zustimmung.
+ *
+ *	History
+ *	09.06.2013	pitschu		Start of work
+ *	04.05.2014	pitschu		dynamic LED strip size (max is 80 x 60)
+ */
 
 
 #include <stdio.h>
@@ -54,7 +74,7 @@ void WS2812update(void)
 	uint16_t * bufp = ws2812timerValues;
 	int c;
 
-	for (i = 0; i < LEDS_PHYS; i++)
+	for (i = 0; i < ledsPhysical; i++)
 	{
 		if (ws2812ovrlayCounter && ws2812ledHasOVR[i])
 		{
@@ -99,7 +119,7 @@ void WS2812init(void)
 	for (; i < WS2812_MAXDMA_LEN; i++)
 		ws2812timerValues[i] = 0;
 
-	for (; i < LEDS_MAXTOTAL; i++)
+	for (i = 0; i < LEDS_MAXTOTAL; i++)
 	{
 		ws2812ledRGB[i].B = 0;
 		ws2812ledRGB[i].G = 0;
@@ -170,7 +190,7 @@ static void WS2812startDMA(void)
 	ledBusy = 1;
 	DMA_InitTypeDef dma_init =
 	{
-			.DMA_BufferSize 		= (LEDS_PHYS * 3 * 8 + WS2812_RESET_LEN),
+			.DMA_BufferSize 		= (ledsPhysical * 3 * 8 + WS2812_RESET_LEN),
 			.DMA_Channel 			= WS2812_DMA_CHANNEL,
 			.DMA_DIR 				= DMA_DIR_MemoryToPeripheral,
 			.DMA_FIFOMode 			= DMA_FIFOMode_Disable,
@@ -234,7 +254,7 @@ void WS2812test(void)
 			{0x00,0x00,0x00},
 	};
 
-	for (i = 0; i < LEDS_PHYS; i++) {
+	for (i = 0; i < ledsPhysical; i++) {
 		ws2812ledRGB[i].R = 0;
 		ws2812ledRGB[i].G = 0;
 		ws2812ledRGB[i].B = 0;
@@ -242,7 +262,7 @@ void WS2812test(void)
 
 	for(j=0; j<NR_TEST_PATTERNS; j++)
 	{
-		for (i = 0; i < LEDS_PHYS; i++)
+		for (i = 0; i < ledsPhysical; i++)
 		{
 			ws2812ledRGB[i].R = patterns[j][0];
 			ws2812ledRGB[i].G = patterns[j][1];

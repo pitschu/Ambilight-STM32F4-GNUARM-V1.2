@@ -16,6 +16,7 @@
 #include <sys/unistd.h>
 #include "stm32f4xx.h"
 #include <stdio.h>
+#include "main.h"
 #include "AvrXSerialIo.h"
 #include "stm32_ub_usb_cdc.h"
 
@@ -30,7 +31,6 @@ extern int errno;
 char *__env[1] = { 0 };
 char **environ = __env;
 
-#define USE_USB		1			// In Produktionsversion vergessen !!!!!!
 
 int _write(int file, char *ptr, int len);
 

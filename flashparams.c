@@ -16,6 +16,8 @@
  *
  *	History
  *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 added new params: ledsX/Y, AGC
  */
 
 
@@ -60,6 +62,7 @@ const flashParam_t flashParams[] = {
 		{(uint8_t*)&cropHeight			, sizeof (cropHeight)},
 		{(uint8_t*)&ledsX				, sizeof (ledsX)},
 		{(uint8_t*)&ledsY				, sizeof (ledsY)},
+		{(uint8_t*)&tvp5150AGC			, sizeof (tvp5150AGC)},
 		{(uint8_t*)&moodLightMasterBrightness	, sizeof (moodLightMasterBrightness)},
 		{(uint8_t*)&moodLightTargetFixedColor	, sizeof (moodLightTargetFixedColor)},
 		{(uint8_t*)&moodLightFade7colors[0]	, sizeof (moodLightFade7colors)},
@@ -229,7 +232,7 @@ int checkForParamChanges (void)
 
 int readAllParamsFromFlash (void)
 /*
- * search actual block in flash and load all params to RAM varaibles
+ * search actual block in flash and load all params to RAM variables
  */
 {
 	uint8_t *s;
@@ -303,7 +306,7 @@ int updateAllParamsToFlash (int forceErase)
 		STM_EVAL_LEDOn(LED_GRN);
 		STM_EVAL_LEDOn(LED_RED);
 		STM_EVAL_LEDOn(LED_ORN);
-		printf ("\nErase flash blocks 10+11 (128k at 0x080C0000)\n");
+		printf ("\nErase flash blocks 10+11 (256k at 0x080C0000)\n");
 		FLASH_EraseSector(FLASH_Sector_10, VoltageRange_3);
 		FLASH_EraseSector(FLASH_Sector_11, VoltageRange_3);
 		STM_EVAL_LEDOff(LED_BLU);

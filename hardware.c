@@ -15,7 +15,7 @@
  *	Darüber hinaus gehende Verwendung bedarf meiner Zustimmung.
  *
  *	History
- *	09.06.2013	pitschu		Start of work
+ *	09.06.2013	pitschu		Start of work; based on STM board example code
  */
 
 #include "hardware.h"

@@ -16,6 +16,8 @@
 *
 *	History
 *	09.06.2013	pitschu		Start of work
+ *	19.11.2013	pitschu 	first release
+ *	05.05.2014	pitschu	v1.1 added support for blue user button
 */
 
 
@@ -50,7 +52,7 @@ void init_systick(void)
 }
 
 
-void SysTick_Handler(void)
+void SysTick_Handler(void)		// runs 100Hz systemm ticker and checks blue user button
 {
 	system_time++;
 

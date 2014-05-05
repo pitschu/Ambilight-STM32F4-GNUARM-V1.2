@@ -1,3 +1,23 @@
+/*****************************************************
+ *
+ *	Control program for the PitSchuLight TV-Backlight
+ *	(c) Peter Schulten, Mülheim, Germany
+ *	peter_(at)_pitschu.de
+ *
+ *	Die unveränderte Wiedergabe und Verteilung dieses gesamten Sourcecodes
+ *	in beliebiger Form ist gestattet, sofern obiger Hinweis erhalten bleibt.
+ *
+ * 	Ich stelle diesen Sourcecode kostenlos zur Verfügung und biete daher weder
+ *	Support an noch garantiere ich für seine Funktionsfähigkeit. Außerdem
+ *	übernehme ich keine Haftung für die Folgen seiner Nutzung.
+
+ *	Der Sourcecode darf nur zu privaten Zwecken verwendet und modifiziert werden.
+ *	Darüber hinaus gehende Verwendung bedarf meiner Zustimmung.
+ *
+ *	History
+ *	09.06.2013	pitschu		Start of work
+ *	04.05.2014	pitschu		dynamic LED strip size (max is 80 x 60)
+ */
 
 
 #ifndef WS2812_STM32F4_H
@@ -11,14 +31,14 @@
 #define CAT(a,b)		CAT_(a,b)
 
 
-#define		LEDS_XMAX		80
+#define		LEDS_XMAX		96
 #define		LEDS_YMAX		60
 #define		LEDS_MAXTOTAL	(2*LEDS_XMAX+2*LEDS_YMAX)			// MAX physical leds on stripe
 #define		DELAY_LINE_SIZE	20					// delay line for imgage processor in the TV
 
 extern int		ledsX;
 extern int		ledsY;
-#define			LEDS_PHYS		(2*ledsX+2*ledsY)				// physical leds on stripe
+#define			ledsPhysical		(2*ledsX+2*ledsY)				// physical leds on stripe
 
 // ----------------------------- definitions -----------------------------
 // warning: change source file if using tim1/8/9/10/11
@@ -56,7 +76,7 @@ extern int		ledsY;
 
 // three colors per led, eight bits per color
 #define WS2812_MAXDMA_LEN		(LEDS_MAXTOTAL * 3 * 8 + WS2812_RESET_LEN)
-#define WS2812_TIMERDMA_LEN		(LEDS_PHYS * 3 * 8 + WS2812_RESET_LEN)
+#define WS2812_TIMERDMA_LEN		(ledsPhysical * 3 * 8 + WS2812_RESET_LEN)
 
 #define WS2812_TIM_FREQ			42000000
 #define WS2812_OUT_FREQ			800000

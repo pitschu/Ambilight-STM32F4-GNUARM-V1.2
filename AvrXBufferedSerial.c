@@ -12,6 +12,7 @@
 	pitschu - July 2013:
 		- ported from AVR to STM32F4
 		- extended buffer length from max 255 to max 32767
+		- added USB support
  */
 
 //------------------------------------------------------------------------------
@@ -21,7 +22,7 @@
 #include "hardware.h"
 #define _AVRXSERIALIO_C_
 #include "AvrXSerialIo.h"
-
+#include "stm32_ub_usb_cdc.h"
 
 AVRX_DECL_FIFO(fifoToHost, FIFOLEN_TOHOST);
 AVRX_DECL_FIFO(fifoFromHost, FIFOLEN_FROMHOST);
@@ -32,8 +33,12 @@ int put_c2Host(char c)	// Non blocking output
 	int retc;
 	retc = AvrXPutFifo(fifoToHost, c);
 
+#ifdef USE_USB
+	UB_VCP_DataTx (AvrXPullFifo(fifoToHost));
+#else
 	if (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == SET)
 		USART_SendData(USART3, AvrXPullFifo(fifoToHost));
+#endif
 
 	return retc;
 }
@@ -42,8 +47,12 @@ int put_c2Host(char c)	// Non blocking output
 int put_char2Host( char c)	// Blocking output
 {
 	AvrXWaitPutFifo(fifoToHost, c);
+#ifdef USE_USB
+	UB_VCP_DataTx (AvrXPullFifo(fifoToHost));
+#else
 	if (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == SET)
 		USART_SendData(USART3, AvrXPullFifo(fifoToHost));
+#endif
 
 	return 0;
 }
