@@ -35,6 +35,10 @@
   #define __ALIGN_BEGIN
   #define __ALIGN_END
 
+#ifdef __packed
+#undef __packed
+#endif
+
   #define __packed    __attribute__ ((__packed__))
 
 
