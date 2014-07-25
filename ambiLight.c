@@ -274,6 +274,15 @@ void ambiLightSlots2Dyn (void)
 	short blackLevl = INT16_MAX;
 
 
+	if (dynFramesLimit == 0)			// dynamic border detect is OFF (used while setting screen boundaries)
+	{
+		dynLeft 	= 0;
+		dynRight 	= SLOTS_X-1;
+		dynTop 		= 0;
+		dynBottom 	= SLOTS_Y-1;
+
+		return;
+	}
 	/*---------------------------------- update the dynCols and dynRows							*/
 
 	if (dynFrames < dynFramesLimit)

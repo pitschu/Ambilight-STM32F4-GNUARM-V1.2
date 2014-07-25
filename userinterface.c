@@ -176,7 +176,7 @@ int UserInterface (void)
 		case 'g':
 		case 'G':
 			mainState = MS_DYN_INT;
-			printf("\nFrame count for dynamic 'black border' detection %d\n", (int)dynFramesLimit);
+			printf("\nFrames for dynamic 'black border' detection (0=OFF) %d\n", (int)dynFramesLimit);
 			break;
 
 		case '+':
@@ -343,12 +343,12 @@ int UserInterface (void)
 				{
 					dynFramesLimit += 1;
 				}
-				if (c=='-' && dynFramesLimit > 10)
+				if (c=='-' && dynFramesLimit > 0)
 				{
 					dynFramesLimit -= 1;
 				}
 				if (c=='d')	dynFramesLimit = 100;
-				printf("\nFrame count for dynamic 'black border' detection %d\n", (int)dynFramesLimit);
+				printf("\nFrames for dynamic 'black border' detection (0=OFF) %d\n", (int)dynFramesLimit);
 				ambiLightInit ();		// flush dyn arrays
 				break;
 
@@ -394,7 +394,7 @@ int UserInterface (void)
 				printf("     L=Left, W=Width, T=Top, H=Height\n");
 				printf("     I=I-factor of integrator (128 = MAX)\n");
 				printf("     E=# of slots aggregated for LED strip (1..10)\n");
-				printf("     G=Frame count for dynamic 'black border' detection (10..200)\n");
+				printf("     G=Frame count for dynamic 'black border' detection (0=OFF; 1..200)\n");
 				printf("     X=virtual image width in blocks\n");
 				printf("     Y=virtual image height in blocks\n");
 				printf("     P=Physical image width: # of LEDs\n");

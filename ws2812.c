@@ -135,8 +135,13 @@ void WS2812init(void)
 	GPIO_InitStructure.GPIO_Pin = WS2812_GPIO_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	// pitschu: Use OD for my prototyping board without 125-Driver chip
+#if 0
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;		//GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;		//GPIO_PuPd_NOPULL;
+#else
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+#endif
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(WS2812_GPIO, &GPIO_InitStructure);
 	GPIO_PinAFConfig(WS2812_GPIO, GPIO_PinSource0, WS2812_GPIO_AF_TIM);
