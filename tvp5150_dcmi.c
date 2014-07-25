@@ -18,6 +18,7 @@
 *	09.06.2013	pitschu		Start of work
  *	19.11.2013	pitschu 	first release
  *	05.05.2014	pitschu	v1.1 supports AGC control
+ *	24.07.2014	pitschu v1.2 fixed bugs in pixel to slots mapping (integer division problems)
 */
 
 #include "hardware.h"
@@ -32,7 +33,7 @@
  * Über die Crop Funktion des DCMI wird der gewünschte Pixelbereich eingestellt, die Crop Funktion des TVP5150
  * wird nicht genutzt, er liefert immer das volle Bild von 1728 bytes pro Zeile und 625 Zeilen pro Frame.
  *
- * Die Farb- und Helligkeitswerte der gelesenen Pixel werden zunächst in 48 x 28 Blöcken aufaddiert (YCbCrSlots).
+ * Die Farb- und Helligkeitswerte der gelesenen Pixel werden zunächst in 64 x 40 Blöcken aufaddiert (YCbCrSlots).
  * Da diese Verarbeitung für eine Zeile länger als 64us dauert, wird eine Zeile in 2 Hälften gelesen, die Verarbeitung
  * dauert dann nur 40us für eine halbe Zeile.
  * Zunächst wird über die Crop Einstellung die linke Hälfte des Bildes zeilenweise gelesen. Wenn das Bild bestehend
@@ -51,7 +52,8 @@
  *
  */
 
-#define		PAL_WIDTH		720
+#define		LINE_WIDTH		864		// full line width in pixels
+#define		PAL_WIDTH		720		// visible part
 #define		PAL_HEIGHT		288
 #define		DMA_LINES		1
 
@@ -63,10 +65,10 @@
 //		Vertical:	 front porch = 2.5 lines, sync width = 6 lines, back porch = 15 lines
 // most values can be changed during runtime
 
-unsigned long	captureWidth = 		668;				// in pixels; best on my old Topfield
+unsigned long	captureWidth = 		696;				// in pixels; best on my old Topfield
 
-unsigned long	cropLeft	= 		168;				// back porch bytes until visible area starts
-unsigned long	cropTop		= 		20;
+unsigned long	cropLeft	= 		160;				// back porch bytes until visible area starts
+unsigned long	cropTop		= 		16;
 unsigned long	cropHeight	= 		274;
 
 unsigned long	dmaWidth 	= 		PAL_WIDTH/4;		// in words (= DMA unit)
@@ -100,8 +102,8 @@ typedef struct {
 	uint8_t		Y1;
 } YCbCr_t;
 
-static volatile YCbCr_t YCbCr_buf0 [((PAL_WIDTH/2) * DMA_LINES)+1] = {{0}};		// the two alternating DMA buffers
-static volatile YCbCr_t YCbCr_buf1 [((PAL_WIDTH/2) * DMA_LINES)+1] = {{0}};
+static volatile YCbCr_t YCbCr_buf0 [((LINE_WIDTH/2) * DMA_LINES)+1] = {{0}};		// the two alternating DMA buffers
+static volatile YCbCr_t YCbCr_buf1 [((LINE_WIDTH/2) * DMA_LINES)+1] = {{0}};
 
 
 typedef struct {
@@ -112,11 +114,10 @@ typedef struct {
 } videoData_t;
 
 
-static volatile videoData_t YCbCrSlots [((SLOTS_Y) * SLOTS_X)] = {{0}};		// ycbcr values of frame currently captured
+static volatile videoData_t YCbCrSlots [(SLOTS_Y * SLOTS_X) + 1] = {{0}};		// ycbcr values of frame currently captured
 static volatile videoData_t *arrP;				// working pointer used in HSYNC handler
 
-static unsigned short	arrXslot, arrYslot;			// number of pixels per array slot; set once when capture starts
-static unsigned short  arrYslotCnt;				// counter within slice currently running
+static unsigned short  arrYslotCnt;			// counter within slice currently running
 
 static int tvp5150_log_status(void);		// prints all TVP5150 registers
 
@@ -164,8 +165,7 @@ void TVP5150startCapture(void)
 	dmaWidth = captureWidth / 4;
 	dmaBufLen = dmaWidth;
 
-	arrXslot = (dmaWidth + (SLOTS_X/2) - 1) / (SLOTS_X/2);		// dmaWidth is half of picture -> spread pixels to SLOTS_X/2
-	arrYslot = (cropHeight + SLOTS_Y - 1) / SLOTS_Y;
+	arrYslotCnt = 0;
 
 	DMA_SetCurrDataCounter(DMA2_Stream1, dmaBufLen);
 	DMA_MemoryTargetConfig(DMA2_Stream1, (uint32_t)&YCbCr_buf0[0], DMA_Memory_0);
@@ -381,7 +381,7 @@ void DMA2_Stream1_IRQHandler (void)
 
 		register videoData_t *p = (videoData_t*)arrP;
 		register YCbCr_t	  *s = (YCbCr_t*)(DMA_GetCurrentMemoryTarget(DMA2_Stream1) == 0 ? &YCbCr_buf1[0] : &YCbCr_buf0[0]);
-		register short a = arrXslot;
+		register short a = 0;
 		register short x;
 
 		for (x = dmaWidth; x != 0; x--)				// add video data in blocks (YCbCrSlots)
@@ -393,16 +393,18 @@ void DMA2_Stream1_IRQHandler (void)
 			//			p->Y -= 32;									// Y has an offset of 16 (BTU.601)
 			p->cnt++;
 			s++;
-			if (--a == 0)
+			a += (SLOTS_X / 2);
+			if (a > dmaWidth)
 			{
-				a = arrXslot;
+				a -= dmaWidth;
 				p++;			// gather pixels into next X slot
 			}
 		}
 
-		if (--arrYslotCnt == 0)
+		arrYslotCnt += SLOTS_Y;
+		if (arrYslotCnt > cropHeight)
 		{
-			arrYslotCnt = arrYslot;
+			arrYslotCnt -= cropHeight;
 			arrP += SLOTS_X;			// points to next row
 		}
 		STM_EVAL_LEDOff(LED_RED);
@@ -441,9 +443,7 @@ void DCMI_IRQHandler(void)
 		dmaBufLen = dmaWidth;
 
 		arrP = (captureLeftRight == 0 ? &YCbCrSlots[0] : &YCbCrSlots[SLOTS_X/2]);
-		arrXslot = (dmaWidth + (SLOTS_X/2) - 1) / (SLOTS_X/2);		// dmaWidth is half of picture -> spread pixels to LEDS_X/2
-		arrYslot = (cropHeight + SLOTS_Y - 1) / SLOTS_Y;
-		arrYslotCnt = arrYslot;
+		arrYslotCnt = 0;
 
 		DCMI_CROPCmd (DISABLE);
 		DCMI_Crop.DCMI_CaptureCount 			= captureWidth-1;

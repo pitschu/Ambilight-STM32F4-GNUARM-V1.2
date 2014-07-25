@@ -22,7 +22,6 @@
 #ifndef AMBILIGHT_H_
 #define AMBILIGHT_H_
 
-#define DYN_FRAME_INTCNT	150
 #define DYN_WIN_Y			10			// max +/- in Y
 #define DYN_WIN_X			10			// max +/- in X
 #define BLACK_LEVEL_SHIFT	10
@@ -53,6 +52,7 @@ void computeI (rgbIcontroller_t *pid, uint8_t r, uint8_t g, uint8_t b);
 
 extern short	rgbImageWid;
 extern short	rgbImageHigh;
+extern unsigned short		dynFramesLimit;	// pitschu v1.2: Added limit value
 
 extern short 	factorI;			// 128 = 1.0
 extern rgbIcontroller_t	rgbImage [];

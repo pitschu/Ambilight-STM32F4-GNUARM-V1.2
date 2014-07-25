@@ -33,7 +33,7 @@
 #include "IRdecoder.h"
 
 
-// rgbImage is a scaled imgae of the raw video image blocks. It can be sized from 1x1 to 48x30
+// rgbImage is a scaled imgae of the raw video image blocks. It can be sized from 1x1 to 64x40
 rgbIcontroller_t	rgbImage [2*SLOTS_X + 2*SLOTS_Y];
 short				rgbImageWid = SLOTS_X;
 short				rgbImageHigh = SLOTS_Y;
@@ -50,6 +50,7 @@ short				dynBottom 	= SLOTS_Y-1;
 dynRGBsum_t			dynColumns[SLOTS_X];
 dynRGBsum_t			dynRows[SLOTS_Y];
 unsigned short		dynFrames = 0;			// number of frames integrated in dynXY vars
+unsigned short		dynFramesLimit = 100;	// pitschu v1.2: Added limit value
 
 short				dynBlackLevel;
 long				dynBlackLevelInt;
@@ -81,6 +82,7 @@ void ambiLightInit (void)
 	dynBlackLevelInt = 0;;
 	dynWhiteLevel = 0;
 	dynWhiteLevelInt = 0;
+	dynFrames = 0;
 
 	for (j = 0; j < DELAY_LINE_SIZE; j++)
 	{
@@ -262,9 +264,9 @@ void ambiLightPrintDynInfos (void)
 
 
 
-	/*
-	 * Transform raw RGB values to scaled image
-	 */
+/*
+ * Transform raw RGB values to scaled image
+ */
 void ambiLightSlots2Dyn (void)
 {
 	int i, j, k;
@@ -274,7 +276,7 @@ void ambiLightSlots2Dyn (void)
 
 	/*---------------------------------- update the dynCols and dynRows							*/
 
-	if (dynFrames < DYN_FRAME_INTCNT)
+	if (dynFrames < dynFramesLimit)
 		dynFrames += 1;
 
 	// compute row values for top and bottom borders
@@ -299,12 +301,12 @@ void ambiLightSlots2Dyn (void)
 		dynRows[y].intContrast  += (maxRGB - minRGB);
 		dynRows[y].intAvg += (sumRGB / SLOTS_X);
 
-		if (dynFrames >= DYN_FRAME_INTCNT)
+		if (dynFrames >= dynFramesLimit)
 		{
 			// compute moving average for min/max/avg
-			dynRows[y].rgbAvg = dynRows[y].intAvg / DYN_FRAME_INTCNT;
+			dynRows[y].rgbAvg = dynRows[y].intAvg / dynFramesLimit;
 			dynRows[y].intAvg -= dynRows[y].rgbAvg;
-			dynRows[y].rgbContrast = dynRows[y].intContrast / DYN_FRAME_INTCNT;
+			dynRows[y].rgbContrast = dynRows[y].intContrast / dynFramesLimit;
 			dynRows[y].intContrast -= dynRows[y].rgbContrast;
 		}
 
@@ -319,9 +321,9 @@ void ambiLightSlots2Dyn (void)
 	}
 
 	dynBlackLevelInt += blackLevl;
-	if (dynFrames >= DYN_FRAME_INTCNT)
+	if (dynFrames >= dynFramesLimit)
 	{
-		dynBlackLevel = dynBlackLevelInt / DYN_FRAME_INTCNT;
+		dynBlackLevel = dynBlackLevelInt / dynFramesLimit;
 		dynBlackLevelInt -= dynBlackLevel;
 	}
 
@@ -384,12 +386,12 @@ void ambiLightSlots2Dyn (void)
 		dynColumns[x].intContrast  += (maxRGB - minRGB);
 		dynColumns[x].intAvg += (sumRGB / SLOTS_X);
 
-		if (dynFrames >= DYN_FRAME_INTCNT)
+		if (dynFrames >= dynFramesLimit)
 		{
 			// compute moving average for min/max/avg
-			dynColumns[x].rgbAvg = dynColumns[x].intAvg / DYN_FRAME_INTCNT;
+			dynColumns[x].rgbAvg = dynColumns[x].intAvg / dynFramesLimit;
 			dynColumns[x].intAvg -= dynColumns[x].rgbAvg;
-			dynColumns[x].rgbContrast = dynColumns[x].intContrast / DYN_FRAME_INTCNT;
+			dynColumns[x].rgbContrast = dynColumns[x].intContrast / dynFramesLimit;
 			dynColumns[x].intContrast -= dynColumns[x].rgbContrast;
 		}
 
@@ -462,18 +464,20 @@ void ambiLightDyn2Image (void)
 
 	for (i = SLOTS_Y-1; i >= 0; i--)
 	{
-		for (j = 0; j < frameWidth; j++)
+		if (i <= dynBottom && i >= dynTop)	// else do not change R/G/B vals because blocks should be black (avoids black flickering of LEDs)
 		{
-			long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].R;
-			rVal += (n / d);
+			for (j = 0; j < frameWidth; j++)
+			{
+				long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].R;
+				rVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].G;
-			gVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].G;
+				gVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].B;
-			bVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynRight-j].B;
+				bVal += (n / d);
+			}
 		}
-
 		cntVal++;
 
 		dv += rgbImageHigh;
@@ -498,16 +502,19 @@ void ambiLightDyn2Image (void)
 
 	for (i = 0; i < SLOTS_Y; i++)
 	{
-		for (j = 0; j < frameWidth; j++)
+		if (i <= dynBottom && i >= dynTop)	// else do not change R/G/B vals because blocks should be black (avoids black flickering of LEDs)
 		{
-			long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].R;
-			rVal += (n / d);
+			for (j = 0; j < frameWidth; j++)
+			{
+				long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].R;
+				rVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].G;
-			gVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].G;
+				gVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].B;
-			bVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[i][dynLeft+j].B;
+				bVal += (n / d);
+			}
 		}
 
 		cntVal++;
@@ -534,18 +541,20 @@ void ambiLightDyn2Image (void)
 
 	for (i = SLOTS_X-1; i >= 0; i--)
 	{
-		for (j = 0; j < frameWidth; j++)
+		if (i <= dynRight && i >= dynLeft)	// else do not change R/G/B vals because blocks should be black (avoids black flickering of LEDs)
 		{
-			long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].R;
-			rVal += (n / d);
+			for (j = 0; j < frameWidth; j++)
+			{
+				long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].R;
+				rVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].G;
-			gVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].G;
+				gVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].B;
-			bVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynTop+j][i].B;
+				bVal += (n / d);
+			}
 		}
-
 		cntVal++;
 
 		dv += rgbImageWid;
@@ -570,18 +579,20 @@ void ambiLightDyn2Image (void)
 
 	for (i = 0; i < SLOTS_X; i++)
 	{
-		for (j = 0; j < frameWidth; j++)
+		if (i <= dynRight && i >= dynLeft)	// else do not change R/G/B vals because blocks should be black (avoids black flickering of LEDs)
 		{
-			long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].R;
-			rVal += (n / d);
+			for (j = 0; j < frameWidth; j++)
+			{
+				long n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].R;
+				rVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].G;
-			gVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].G;
+				gVal += (n / d);
 
-			n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].B;
-			bVal += (n / d);
+				n = ((2<<(frameWidth-1-j)) * 100) * (long)rgbSlots[dynBottom-j][i].B;
+				bVal += (n / d);
+			}
 		}
-
 		cntVal++;
 
 		dv += rgbImageWid;

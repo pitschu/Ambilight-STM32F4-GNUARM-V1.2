@@ -134,8 +134,9 @@ void WS2812init(void)
 	RCC_AHB1PeriphClockCmd(WS2812_RCC_GPIO, ENABLE);
 	GPIO_InitStructure.GPIO_Pin = WS2812_GPIO_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	// pitschu: Use OD for my prototyping board without 125-Driver chip
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;		//GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;		//GPIO_PuPd_NOPULL;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(WS2812_GPIO, &GPIO_InitStructure);
 	GPIO_PinAFConfig(WS2812_GPIO, GPIO_PinSource0, WS2812_GPIO_AF_TIM);
@@ -264,9 +265,9 @@ void WS2812test(void)
 	{
 		for (i = 0; i < ledsPhysical; i++)
 		{
-			ws2812ledRGB[i].R = patterns[j][0];
-			ws2812ledRGB[i].G = patterns[j][1];
-			ws2812ledRGB[i].B = patterns[j][2];
+			ws2812ledRGB[i].R = patterns[j][0] * 0.5F;	// 50% brigthness; my DC power supply is weak and I got brown outs
+			ws2812ledRGB[i].G = patterns[j][1] * 0.5F;
+			ws2812ledRGB[i].B = patterns[j][2] * 0.5F;
 		}
 		while (ledBusy)
 			;

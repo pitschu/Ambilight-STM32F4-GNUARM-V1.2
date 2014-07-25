@@ -46,7 +46,8 @@ typedef enum {
 	MS_FRAME_DELAY,
 	MS_TVP_AGC,			// pitschu: added 140505
 	MS_XLEDS,			// pitschu: added 140502
-	MS_YLEDS
+	MS_YLEDS,
+	MS_DYN_INT			// pitschu v1.2
 } mainStates_e;
 
 
@@ -113,12 +114,14 @@ int UserInterface (void)
 		case 'L':
 			mainState = MS_LEFT;
 			printf("\nCrop left is %d\n", (int)cropLeft/2);
+			printf("Capture width is %d\n", (int)captureWidth);
 			printf("Capture right is %d\n", (int)(cropLeft/2 + captureWidth));
 			break;
 		case 'w':
 		case 'W':
 			mainState = MS_RIGHT;
 			printf("\nCrop left is %d\n", (int)cropLeft/2);
+			printf("Capture width is %d\n", (int)captureWidth);
 			printf("Capture right is %d\n", (int)(cropLeft/2 + captureWidth));
 			break;
 		case 't':
@@ -168,6 +171,12 @@ int UserInterface (void)
 		case 'R':
 			mainState = MS_YLEDS;
 			printf("\nPhysical LEDS height %d\n", (int)ledsY);
+			break;
+
+		case 'g':
+		case 'G':
+			mainState = MS_DYN_INT;
+			printf("\nFrame count for dynamic 'black border' detection %d\n", (int)dynFramesLimit);
 			break;
 
 		case '+':
@@ -259,27 +268,25 @@ int UserInterface (void)
 				break;
 
 			case MS_LEFT:
-				if (c=='+' && cropLeft/2 < 200 && (cropLeft/2 + captureWidth) < 840)
+				if (c=='+' && cropLeft/2 < 200)
 				{
-					cropLeft += 8;
-					captureWidth -= 4;
+					cropLeft += 8;		// = 4 pixels
 				}
-				if (c=='-' && cropLeft/2 > 40 && (cropLeft/2 + captureWidth) < 840)
+				if (c=='-' && cropLeft/2 > 40)
 				{
 					cropLeft -= 8;
-					captureWidth += 4;
 				}
 				if (c=='d')
 				{
-					cropLeft = 168;
-					captureWidth = 668;
+					cropLeft = 160;
 				}
 				printf("\nCrop left is %d\n", (int)cropLeft/2);
+				printf("Capture width is %d\n", (int)captureWidth);
 				printf("Capture right is %d\n", (int)(cropLeft/2 + captureWidth));
 				memset((void*)&rgbSlots[0][0], 0, sizeof (rgbSlots));
 				break;
 			case MS_RIGHT:
-				if (c=='+' && captureWidth < 800 && (cropLeft/2 + captureWidth) < 840)
+				if (c=='+' && captureWidth < 740)
 				{
 					captureWidth += 4;
 				}
@@ -289,14 +296,15 @@ int UserInterface (void)
 				}
 				if (c=='d')
 				{
-					captureWidth = 668;
+					captureWidth = 696;
 				}
 				printf("\nCrop left is %d\n", (int)cropLeft/2);
+				printf("Capture width is %d\n", (int)captureWidth);
 				printf("Capture right is %d\n", (int)(cropLeft/2 + captureWidth));
 				memset((void*)&rgbSlots[0][0], 0, sizeof (rgbSlots));
 				break;
 			case MS_TOP:
-				if (c=='+' && cropTop < 150 && (cropTop + cropHeight) < 306)
+				if (c=='+' && cropTop < 150 && (cropTop + cropHeight) < 312)
 				{
 					cropTop += 1;
 					cropHeight -= 1;
@@ -316,7 +324,7 @@ int UserInterface (void)
 				memset((void*)&rgbSlots[0][0], 0, sizeof (rgbSlots));
 				break;
 			case MS_HEIGHT:
-				if (c=='+' && (cropTop + cropHeight) < 306)
+				if (c=='+' && (cropTop + cropHeight) < 312)
 				{
 					cropHeight += 1;
 				}
@@ -328,6 +336,20 @@ int UserInterface (void)
 				printf("\nCrop top is %d\n", (int)cropTop);
 				printf("Crop bottom is %d\n", (int)(cropTop+cropHeight-1));
 				memset((void*)&rgbSlots[0][0], 0, sizeof (rgbSlots));
+				break;
+
+			case MS_DYN_INT:
+				if (c=='+' && (dynFramesLimit) < 200)
+				{
+					dynFramesLimit += 1;
+				}
+				if (c=='-' && dynFramesLimit > 10)
+				{
+					dynFramesLimit -= 1;
+				}
+				if (c=='d')	dynFramesLimit = 100;
+				printf("\nFrame count for dynamic 'black border' detection %d\n", (int)dynFramesLimit);
+				ambiLightInit ();		// flush dyn arrays
 				break;
 
 			default:
@@ -372,6 +394,7 @@ int UserInterface (void)
 				printf("     L=Left, W=Width, T=Top, H=Height\n");
 				printf("     I=I-factor of integrator (128 = MAX)\n");
 				printf("     E=# of slots aggregated for LED strip (1..10)\n");
+				printf("     G=Frame count for dynamic 'black border' detection (10..200)\n");
 				printf("     X=virtual image width in blocks\n");
 				printf("     Y=virtual image height in blocks\n");
 				printf("     P=Physical image width: # of LEDs\n");

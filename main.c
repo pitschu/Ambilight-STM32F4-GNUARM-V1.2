@@ -18,6 +18,7 @@
  *	09.06.2013	pitschu		Start of work
  *	19.11.2013	pitschu 	first release
  *	05.05.2014	pitschu	v1.1 supports blue user button (mode switch/standby)
+ *	24.07.2014	pitschu v1.2 bug fixing in tvp5150_dcmi.c
  */
 
 #include "stm32f4xx.h"
@@ -86,7 +87,7 @@ int main(void)
 	USART3_Init (115200);
 	delay_ms(3000);			// delay 3sec to give user a chance for starting PuTTY
 
-	write_str2Host("Hi there. This is pitschu's AmbiLight V1.1\n\r");
+	write_str2Host("Hi there. This is pitschu's AmbiLight V1.2\n\r");
 	/* Initialize LEDs and User_Button on STM32F4-Discovery --------------------*/
 	STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_GPIO);
 

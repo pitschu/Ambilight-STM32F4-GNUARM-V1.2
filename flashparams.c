@@ -18,6 +18,7 @@
  *	09.06.2013	pitschu		Start of work
  *	19.11.2013	pitschu 	first release
  *	05.05.2014	pitschu	v1.1 added new params: ledsX/Y, AGC
+ *	24.07.2014	pitschu v1.2 added dynFramesLimit (Params version 135)
  */
 
 
@@ -43,7 +44,7 @@ static uint8_t		*blockAddr = (uint8_t*)PARAM_FLASH_START;
 static uint16_t		blockSize;			// # of bytes in parameter flash block (without CRC bytes)
 
 #define	FLASH_SIGNATURE			((long)('P'<<24) |	(long)('.'<<16) | (long)('S'<<8) | (long)('.'<<0) )
-#define FLASH_VERSION			134
+#define FLASH_VERSION			135
 
 
 const flashParam_t flashParams[] = {
@@ -68,6 +69,7 @@ const flashParam_t flashParams[] = {
 		{(uint8_t*)&moodLightFade7colors[0]	, sizeof (moodLightFade7colors)},
 		{(uint8_t*)&moodLightDIYcolor[0], sizeof (moodLightDIYcolor)},
 		{(uint8_t*)&moodLightSinusDIY[0], sizeof (moodLightSinusDIY)},
+		{(uint8_t*)&dynFramesLimit 		, sizeof (dynFramesLimit)},
 
 // Add what ever parameter you want to be saved to flash
 		{(uint8_t*)0, 0},
