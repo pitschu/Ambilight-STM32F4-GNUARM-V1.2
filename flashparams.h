@@ -20,8 +20,8 @@
 
 
 
-#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_FLASHPARAMS_H_
-#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_FLASHPARAMS_H_
+#ifndef FLASHPARAMS_H_
+#define FLASHPARAMS_H_
 
 #define PARAM_FLASH_START		0x080C0000		// 256K before ROM end (last 2 sectors)
 #define PARAM_FLASH_END			0x080FFFF0		// last flash byte usable for parameters
@@ -39,4 +39,4 @@ extern int initFlashParamBlock (void);
 extern int readAllParamsFromFlash (void);
 extern int updateAllParamsToFlash (int forceErase);
 
-#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_FLASHPARAMS_H_ */
+#endif /* FLASHPARAMS_H_ */

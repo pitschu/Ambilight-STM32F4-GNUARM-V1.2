@@ -19,8 +19,8 @@
  */
 
 
-#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_AMBILIGHT_H_
-#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_AMBILIGHT_H_
+#ifndef AMBILIGHT_H_
+#define AMBILIGHT_H_
 
 #define DYN_WIN_Y			10			// max +/- in Y
 #define DYN_WIN_X			10			// max +/- in X
@@ -62,4 +62,4 @@ extern short  	tvprocDelayW;				// delay FIFO write pointer
 extern short  	tvprocDelayTime;			// difference between write an read pointr
 
 
-#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_AMBILIGHT_H_ */
+#endif /* AMBILIGHT_H_ */
