@@ -19,8 +19,8 @@
  */
 
 
-#ifndef MAIN_H_
-#define MAIN_H_
+#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MAIN_H_
+#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MAIN_H_
 
 #include "hardware.h"
 #include "AvrXSerialIo.h"
@@ -92,4 +92,4 @@ extern int			masterBrightness;
 extern void displayOverlayPercents (int percent, int duration);
 
 
-#endif /* MAIN_H_ */
+#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MAIN_H_ */

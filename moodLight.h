@@ -20,8 +20,8 @@
  */
 
 
-#ifndef MOODLIGHT_H_
-#define MOODLIGHT_H_
+#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MOODLIGHT_H_
+#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MOODLIGHT_H_
 
 typedef enum {
 	MLM_SINGLE_COLOR		= 0,
@@ -74,4 +74,4 @@ extern void moodLightMainAction (int action);
 extern int moodLightHandleIRcode ();
 
 
-#endif /* MOODLIGHT_H_ */
+#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_MOODLIGHT_H_ */

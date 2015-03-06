@@ -19,8 +19,8 @@
  */
 
 
-#ifndef IRDECODER_H_
-#define IRDECODER_H_
+#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_IRDECODER_H_
+#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_IRDECODER_H_
 
 // NEC / Japanese...
 // 13.500ms     - start
@@ -96,4 +96,4 @@ extern volatile irCode_t	irCode;
 extern void IRdecoderInit(void);
 
 
-#endif /* IRDECODER_H_ */
+#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_IRDECODER_H_ */

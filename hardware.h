@@ -19,14 +19,11 @@
 */
 
 
-#ifndef HARDWARE_H_
-#define HARDWARE_H_
+#ifndef AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_HARDWARE_H_
+#define AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_HARDWARE_H_
 
 #include "stm32f4xx.h"
-#include "stm32f4xx_gpio.h"
-#include "stm32f4xx_rcc.h"
-#include "stm32f4xx_dcmi.h"
-#include "stm32f4xx_dma.h"
+#include "stm32f4xx_conf.h"
 #include "i2c1.h"
 #include "stdio.h"
 
@@ -170,4 +167,4 @@ void delay_ms(uint16_t time_ms);
 
 
 
-#endif /* HARDWARE_H_ */
+#endif /* AMBILIGHT_STM32F4_GNUARM_V1_2_OLD_HARDWARE_H_ */
