@@ -89,6 +89,8 @@ int16_t AvrXWaitPullFifo(pAvrXFifo p)
 	while ((c = AvrXPullFifo(p)) == FIFO_ERR)
 		;
 	return c;
+	
+	// debugging
 }
 
 
